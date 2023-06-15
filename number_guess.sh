@@ -15,6 +15,7 @@ CHECK_USERNAME_IN_DATABASE() {
 	then 
     # Check if username is in database 
     USER_ID="$($PSQL "SELECT user_id FROM users WHERE name='$USERNAME'")"
+    GET_USER_ID=$USER_ID
     if [[ -z $USER_ID ]]
     then 
     # Insert into user table 
@@ -22,18 +23,19 @@ CHECK_USERNAME_IN_DATABASE() {
     # Select user from table 
     GET_USERNAME="$($PSQL "SELECT name FROM users WHERE name='$USERNAME'")"
     # Then in table, give greetings
+    GET_USER_ID="$($PSQL "SELECT user_id FROM users WHERE name='$GET_USERNAME'")"
     echo -e "\nWelcome, $GET_USERNAME! It look like this is your first time here."
     else 
       #Set username to a variable
       GET_USERNAME="$USERNAME"
       #get games_played 
-      GAMES_PLAYED="$($PSQL "SELECT games_played FROM player_info JOIN users USING(user_id) WHERE user_id=$USER_ID")" 
+      GAMES_PLAYED="$($PSQL "SELECT MAX(game_number) FROM games WHERE user_id=$USER_ID")" 
       if [[ -z $GAMES_PLAYED ]]
       then 
         GAMES_PLAYED="0"
       fi
       #get best_game 
-      BEST_GAME="$($PSQL "SELECT best_game FROM player_info JOIN users USING(user_id) WHERE user_id=$USER_ID")"
+      BEST_GAME="$($PSQL "SELECT MIN(number_of_guesses) FROM games WHERE user_id=$USER_ID")"
       if [[ -z $BEST_GAME ]]
       then 
         BEST_GAME="0"
@@ -59,8 +61,9 @@ read X # holding input value
   else 
 	if [[ $X == $GUESS ]]
 	then
+    #get user_id
     #Insert values from game into database 
-    INSERT_GUESS_TIMES_RESULT="$($PSQL "INSERT INTO ")"
+    INSERT_GUESS_TIMES_RESULT="$($PSQL "INSERT INTO games(number_of_guesses, secret_number_of_the_game, date_played, time_played, user_id) VALUES($TIMES_GUESSING, $GUESS, NOW(), NOW(), $GET_USER_ID)")"
     echo -e "\nYou guessed it in $TIMES_GUESSING tries. The secret number was $GUESS. Nice job!"
 	else
     TIMES_GUESSING=$(( TIMES_GUESSING + 1 ))

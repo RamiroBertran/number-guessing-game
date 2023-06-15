@@ -52,17 +52,30 @@ if [[ $1 ]]
 then 
   echo -e "$1\n"
 fi
-echo $GUESS
 read X # holding input value 
+  if [[ ! $X =~ ^[0-9]+$ ]]
+  then 
+    GUESSING_GAME "That is not an integer, guess again:"
+  else 
 	if [[ $X == $GUESS ]]
 	then
-    echo "You guess right"
+    #Insert values from game into database 
+    INSERT_GUESS_TIMES_RESULT="$($PSQL "INSERT INTO ")"
+    echo -e "\nYou guessed it in $TIMES_GUESSING tries. The secret number was $GUESS. Nice job!"
 	else
     TIMES_GUESSING=$(( TIMES_GUESSING + 1 ))
-    echo -e "$GUESS=$X"
-    echo $TIMES_GUESSING
-		GUESSING_GAME "Try Again."
+    #echo -e "$GUESS=$X"
+    #echo $TIMES_GUESSING
+    if [[ $X -gt $GUESS ]]
+    then 
+		  GUESSING_GAME "It's lower than that, guess again:"
+      elif [[ $X -lt $GUESS ]]
+      then 
+      GUESSING_GAME "It's higher than that, try again:"
+    fi
 	fi
+fi
 }
 CHECK_USERNAME_IN_DATABASE
+echo -e "\nGuess the secret number between 1 and 1000:"
 GUESSING_GAME
